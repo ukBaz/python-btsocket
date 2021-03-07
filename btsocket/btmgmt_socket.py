@@ -1,0 +1,105 @@
+import asyncio
+import ctypes
+import socket
+
+
+AF_BLUETOOTH = 31
+PF_BLUETOOTH = AF_BLUETOOTH
+SOCK_RAW = 3
+BTPROTO_HCI = 1
+SOCK_CLOEXEC = 524288
+SOCK_NONBLOCK = 2048
+HCI_CHANNEL_CONTROL = 3
+HCI_DEV_NONE = 0xffff
+
+
+class BluetoothSocketError(BaseException):
+    pass
+
+
+class BluetoothCommandError(BaseException):
+    pass
+
+
+class SocketAddr(ctypes.Structure):
+    _fields_ = [
+        ("hci_family", ctypes.c_ushort),
+        ("hci_dev", ctypes.c_ushort),
+        ("hci_channel", ctypes.c_ushort),
+    ]
+
+
+def btmgmt_socket():
+    """
+    Because of the following issue with Python the Bluetooth User socket
+    on linux needs to be done with lower level calls.
+    https://bugs.python.org/issue36132
+    Based on mgmt socket at:
+    https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/mgmt-api.txt
+    """
+
+    sockaddr_hcip = ctypes.POINTER(SocketAddr)
+    ctypes.cdll.LoadLibrary("libc.so.6")
+    libc = ctypes.CDLL("libc.so.6")
+
+    libc_socket = libc.socket
+    libc_socket.argtypes = (ctypes.c_int, ctypes.c_int, ctypes.c_int)
+    libc_socket.restype = ctypes.c_int
+
+    bind = libc.bind
+    bind.argtypes = (ctypes.c_int, ctypes.POINTER(SocketAddr), ctypes.c_int)
+    bind.restype = ctypes.c_int
+
+    # fd = libc_socket(PF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC | SOCK_NONBLOCK,
+    #               BTPROTO_HCI)
+    fd = libc_socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
+    if fd < 0:
+        raise BluetoothSocketError("Unable to open PF_BLUETOOTH socket")
+
+    addr = SocketAddr()
+    addr.hci_family = AF_BLUETOOTH  # AF_BLUETOOTH
+    addr.hci_dev = HCI_DEV_NONE  # adapter index
+    addr.hci_channel = HCI_CHANNEL_CONTROL  # HCI_USER_CHANNEL
+    r = bind(fd, sockaddr_hcip(addr), ctypes.sizeof(addr))
+    if r < 0:
+        raise BluetoothSocketError("Unable to bind %s", r)
+
+    ins = outs = socket.fromfd(fd, AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
+    return ins, outs
+
+
+def test_asyncio_usage():
+    rsock, wsock = btmgmt_socket()
+
+    loop = asyncio.get_event_loop()
+
+    def reader():
+        data = rsock.recv(100)
+        print("Received:", data)
+
+        # We are done: unregister the file descriptor
+        loop.remove_reader(rsock)
+
+        # Stop the event loop
+        loop.stop()
+
+    # Register the file descriptor for read event
+    loop.add_reader(rsock, reader)
+
+    # Write a command to the socket
+    # Read Management Version Information Command
+    # b'\x01\x00\xff\xff\x00\x00'
+    loop.call_soon(wsock.send, b'\x01\x00\xff\xff\x00\x00')
+
+    try:
+        # Run the event loop
+        loop.run_forever()
+    finally:
+        # We are done. Close sockets and the event loop.
+        rsock.close()
+        wsock.close()
+        loop.close()
+
+
+if __name__ == '__main__':
+    test_asyncio_usage()
