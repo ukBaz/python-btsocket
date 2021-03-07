@@ -135,14 +135,17 @@ starts the writers and readers of the sockets.
     from btsocket import btmgmt_protocol
 
     def device_found(response, mgmt_obj):
-        print('New device found', data.event_frame.address)
+        print('New device found', response.event_frame.address)
         # To exit set running to False
         mgmt_obj.stop()
 
     def app():
         mgmt = btmgmt_callback.Mgmt()
-        mgmt.add_event_callback(btmgmt.Events.DeviceFoundEvent, device_found)
-        mgmt.send('StartDiscovery', 0, 6)
+        mgmt.add_event_callback(btmgmt_protocol.Events.DeviceFoundEvent,
+                                device_found)
+        mgmt.send('StartDiscovery', 0, [btmgmt_protocol.AddressType.LEPublic,
+                                        btmgmt_protocol.AddressType.LERandom,
+                                        btmgmt_protocol.AddressType.BREDR])
         mgmt.start()
 
 
