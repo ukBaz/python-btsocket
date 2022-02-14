@@ -1,9 +1,7 @@
 import asyncio
 import ctypes
-import os
 import socket
 
-import btsocket.btmgmt_socket
 
 AF_BLUETOOTH = 31
 PF_BLUETOOTH = AF_BLUETOOTH
@@ -55,7 +53,7 @@ def open():
     # fd = libc_socket(PF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC | SOCK_NONBLOCK,
     #               BTPROTO_HCI)
     fd = libc_socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
-    print('libc fd', fd)
+
     if fd < 0:
         raise BluetoothSocketError("Unable to open PF_BLUETOOTH socket")
 
@@ -67,17 +65,14 @@ def open():
     if r < 0:
         raise BluetoothSocketError("Unable to bind %s", r)
 
-    sock_fd = socket.fromfd(fd, AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
+    sock_fd = socket.socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI, fileno=fd)
     return sock_fd
 
 
 def close(socket_fd):
+    """Close the open socket"""
     fd = socket_fd.detach()
-    print('Python fd', fd)
-    socket_fd.close()
-    os.close(fd - 1)
-    os.close(fd)
-    print(socket_fd._closed)
+    socket.close(fd)
 
 
 def test_asyncio_usage():
@@ -108,7 +103,7 @@ def test_asyncio_usage():
         loop.run_forever()
     finally:
         # We are done. Close sockets and the event loop.
-        btsocket.btmgmt_socket.close(sock)
+        close(sock)
         loop.close()
 
 
