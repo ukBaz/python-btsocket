@@ -15,7 +15,7 @@ class Mgmt:
 
     def __init__(self):
         # Setup read and write sockets
-        self.rsock, self.wsock = btmgmt_socket.btmgmt_socket()
+        self.rsock, self.wsock = btmgmt_socket.open()
         self.loop = asyncio.get_event_loop()
         # Store for event callbacks
         self._event_callbacks = dict()

@@ -1,7 +1,9 @@
 import asyncio
 import ctypes
+import os
 import socket
 
+import btsocket.btmgmt_socket
 
 AF_BLUETOOTH = 31
 PF_BLUETOOTH = AF_BLUETOOTH
@@ -29,7 +31,7 @@ class SocketAddr(ctypes.Structure):
     ]
 
 
-def btmgmt_socket():
+def open():
     """
     Because of the following issue with Python the Bluetooth User socket
     on linux needs to be done with lower level calls.
@@ -53,6 +55,7 @@ def btmgmt_socket():
     # fd = libc_socket(PF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC | SOCK_NONBLOCK,
     #               BTPROTO_HCI)
     fd = libc_socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
+    print('libc fd', fd)
     if fd < 0:
         raise BluetoothSocketError("Unable to open PF_BLUETOOTH socket")
 
@@ -64,40 +67,48 @@ def btmgmt_socket():
     if r < 0:
         raise BluetoothSocketError("Unable to bind %s", r)
 
-    ins = outs = socket.fromfd(fd, AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
-    return ins, outs
+    sock_fd = socket.fromfd(fd, AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI)
+    return sock_fd
+
+
+def close(socket_fd):
+    fd = socket_fd.detach()
+    print('Python fd', fd)
+    socket_fd.close()
+    os.close(fd - 1)
+    os.close(fd)
+    print(socket_fd._closed)
 
 
 def test_asyncio_usage():
-    rsock, wsock = btmgmt_socket()
+    sock = open()
 
     loop = asyncio.get_event_loop()
 
     def reader():
-        data = rsock.recv(100)
+        data = sock.recv(100)
         print("Received:", data)
 
         # We are done: unregister the file descriptor
-        loop.remove_reader(rsock)
+        loop.remove_reader(sock)
 
         # Stop the event loop
         loop.stop()
 
     # Register the file descriptor for read event
-    loop.add_reader(rsock, reader)
+    loop.add_reader(sock, reader)
 
     # Write a command to the socket
     # Read Management Version Information Command
     # b'\x01\x00\xff\xff\x00\x00'
-    loop.call_soon(wsock.send, b'\x01\x00\xff\xff\x00\x00')
+    loop.call_soon(sock.send, b'\x01\x00\xff\xff\x00\x00')
 
     try:
         # Run the event loop
         loop.run_forever()
     finally:
         # We are done. Close sockets and the event loop.
-        rsock.close()
-        wsock.close()
+        btsocket.btmgmt_socket.close(sock)
         loop.close()
 
 
