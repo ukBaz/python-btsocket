@@ -17,6 +17,3 @@ for cmd in data.cmd_response_frame.command:
               f'{required_params}')
     except ValueError:
         pass
-
-from time import sleep
-sleep(10)
