@@ -15,7 +15,7 @@ class Mgmt:
 
     def __init__(self):
         # Setup read and write sockets
-        self.rsock, self.wsock = btmgmt_socket.open()
+        self.sock = btmgmt_socket.open()
         self.loop = asyncio.get_event_loop()
         # Store for event callbacks
         self._event_callbacks = dict()
@@ -42,7 +42,7 @@ class Mgmt:
         to events.
         """
         logger.debug('Reader callback')
-        data = self.rsock.recv(100)
+        data = self.sock.recv(100)
         pkt = btmgmt_protocol.reader(data)
         logger.info('pkt: [%s]', pkt)
         if pkt.header.event_code in self._event_callbacks:
@@ -59,7 +59,7 @@ class Mgmt:
         if len(self.cmd_queue) > 0:
             this_cmd = self.cmd_queue.popleft()
             logger.info('sending pkt [%s]', tools.format_pkt(this_cmd))
-            self.wsock.send(this_cmd)
+            self.sock.send(this_cmd)
         if not self.running and len(self.cmd_queue) == 0:
             self.loop.stop()
             # Do one more read to get the response from the last command
@@ -95,24 +95,23 @@ class Mgmt:
         """
         self.running = False
 
-        self.loop.remove_writer(self.wsock)
-        self.loop.remove_reader(self.rsock)
+        self.loop.remove_writer(self.sock)
+        self.loop.remove_reader(self.sock)
         self.loop.stop()
 
     def close(self):
         """
         Stop the event loop and close sockets etc.
         """
-        self.rsock.close()
-        # self.wsock.close()
+        btmgmt_socket.close(self.sock)
         # Stop the event loop
         self.loop.close()
 
     def start(self):
         self.running = True
         # Setup reader and writer for socket streams
-        self.loop.add_reader(self.rsock, self.reader)
-        self.loop.add_writer(self.wsock, self.writer)
+        self.loop.add_reader(self.sock, self.reader)
+        self.loop.add_writer(self.sock, self.writer)
         logger.debug('Starting event loop...')
         try:
             # Run the event loop

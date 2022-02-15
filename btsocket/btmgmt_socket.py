@@ -69,9 +69,9 @@ def open():
     return sock_fd
 
 
-def close(socket_fd):
+def close(bt_socket):
     """Close the open socket"""
-    fd = socket_fd.detach()
+    fd = bt_socket.detach()
     socket.close(fd)
 
 
