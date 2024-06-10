@@ -29,7 +29,7 @@ instance = 1  # Arbitrary value
 flags = Flags.GENERAL_DISCOVERABLE
 duration = 0x00  # 0 means use default
 timeout = 0x0  # 0 means use default
-adv_data = "1bfff0ff6DB643CF7E8F471188665938D17AAA26495E131415161718"  # (0-255 Octets)
+adv_data = "1bfff0ff6DB643CF7E8F471188665938D17AAA26495E131415161718"
 adv_data_len = len(bytes.fromhex(adv_data))
 scan_rsp = ""  # (0-255 Octets)
 scan_rsp_len = len(bytes.fromhex(scan_rsp))
@@ -41,7 +41,9 @@ def show_result(pkt, mgmt_class):
 
 def main():
     mgmt = btmgmt_callback.Mgmt()
-    mgmt.add_event_callback(btmgmt_protocol.Events.CommandCompleteEvent, show_result)
+    mgmt.add_event_callback(
+        btmgmt_protocol.Events.CommandCompleteEvent,
+        show_result)
     mgmt.send('AddAdvertising', ctrl_idx,
               instance,
               flags,

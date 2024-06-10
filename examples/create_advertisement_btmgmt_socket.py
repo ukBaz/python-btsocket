@@ -34,7 +34,8 @@ def advert_command(instance_id, flags, duration, timeout, adv_data, scan_rsp):
     adv_data_len = little_bytes(len(adv_data), 1)  # (1 Octet)
     scan_rsp = bytes.fromhex(scan_rsp)  # (0-255 Octets)
     scan_rsp_len = little_bytes(len(scan_rsp), 1)  # (1 Octet)
-    params = instance + flags + duration + timeout + adv_data_len + scan_rsp_len + adv_data + scan_rsp
+    params = (instance + flags + duration + timeout + adv_data_len +
+              scan_rsp_len + adv_data + scan_rsp)
     param_len = little_bytes(len(params), 2)
 
     return cmd + ctrl_idx + param_len + params
@@ -56,7 +57,9 @@ def test_asyncio_usage():
     def reader():
         raw_data = sock.recv(100)
         data = btmgmt_protocol.reader(raw_data)
-        print("Received:", data.event_frame.command_opcode, data.event_frame.status)
+        print("Received:",
+              data.event_frame.command_opcode,
+              data.event_frame.status)
 
         # We are done: unregister the file descriptor
         loop.remove_reader(sock)

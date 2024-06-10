@@ -699,14 +699,20 @@ cmds = {
                     Parameter(name='uuid[i]', width=16, repeat='uuid_count')]),
     0x003b: Packet([Parameter(name='address_type', width=1,
                               bt_type='AddressTypeField')]),
-    0x003e: Packet([Parameter(name='instance', width=1),
-                    Parameter(name='flags', width=4),
-                    Parameter(name='duration', width=2),
-                    Parameter(name='timeout', width=2),
-                    Parameter(name='adv_data_len', width=1),
-                    Parameter(name='scan_rsp_len', width=1),
-                    Parameter(name='adv_data', width=None, repeat=1, bt_type='HexStr'),
-                    Parameter(name='scan_rsp', width=None, repeat=1, bt_type='HexStr')]),
+    0x003e: Packet(
+        [
+            Parameter(name='instance', width=1),
+            Parameter(name='flags', width=4),
+            Parameter(name='duration', width=2),
+            Parameter(name='timeout', width=2),
+            Parameter(name='adv_data_len', width=1),
+            Parameter(name='scan_rsp_len', width=1),
+            Parameter(
+                name='adv_data', width=None, repeat=1, bt_type='HexStr'),
+            Parameter(
+                name='scan_rsp', width=None, repeat=1, bt_type='HexStr')
+        ]
+    ),
     0x003f: Packet([Parameter(name='instance', width=1)]),
     0x0040: Packet([Parameter(name='instance', width=1),
                     Parameter(name='flags', width=4)]),
