@@ -80,6 +80,17 @@ class IntUL(DataField):
         self.value = value
 
 
+class HexStr(DataField):
+
+    def decode(self, data):
+        self.value = data.hex()
+        self.octets = data
+
+    def encode(self, value, width):
+        self.octets = bytes.fromhex(value)
+        self.value = value
+
+
 class CmdCode(DataField):
 
     def decode(self, data):
@@ -694,8 +705,8 @@ cmds = {
                     Parameter(name='timeout', width=2),
                     Parameter(name='adv_data_len', width=1),
                     Parameter(name='scan_rsp_len', width=1),
-                    Parameter(name='adv_data', width=None),
-                    Parameter(name='scan_rsp', width=None)]),
+                    Parameter(name='adv_data', width=None, repeat=1, bt_type='HexStr'),
+                    Parameter(name='scan_rsp', width=None, repeat=1, bt_type='HexStr')]),
     0x003f: Packet([Parameter(name='instance', width=1)]),
     0x0040: Packet([Parameter(name='instance', width=1),
                     Parameter(name='flags', width=4)]),

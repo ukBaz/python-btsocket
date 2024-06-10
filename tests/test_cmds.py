@@ -23,6 +23,15 @@ class TestCmdReponse(unittest.TestCase):
         self.assertEqual(expected,
                          pkt.header.octets + pkt.cmd_params_frame.octets)
 
+    def test_add_adv(self):
+        expected = bytes.fromhex('3e00000027000102000000000000001c001bfff0ff6db643cf7e8f4711886659'
+                                 '38d17aaa26495e131415161718')
+        pkt = btmgmt_protocol.command('AddAdvertising', 0,
+                                      1, 2, 0, 0, 0x1c, 0,
+                                      "1bfff0ff6DB643CF7E8F471188665938D17AAA26495E131415161718", '')
+        self.assertEqual(expected,
+                         pkt.header.octets + pkt.cmd_params_frame.octets)
+
 
 if __name__ == '__main__':
     unittest.main()
