@@ -1,6 +1,19 @@
 ==============================
 BlueZ Bluetooth Management API
 ==============================
+
+.. image:: https://github.com/ukBaz/python-btsocket/actions/workflows/python-app.yml/badge.svg
+   :target: https://github.com/ukBaz/python-btsocket/actions/workflows/python-app.yml
+   :alt: btsocket-tests
+
+.. image:: https://img.shields.io/pypi/v/btsocket
+   :target: https://pypi.org/project/btsocket/
+   :alt: PyPI - Version
+
+.. image:: https://snyk.io/advisor/python/btsocket/badge.svg
+   :target: https://snyk.io/advisor/python/btsocket
+   :alt: btsocket
+
 A Python library to interact with Bluez Bluetooth Management API on Linux.
 At this time it should be seen as a very early stage proof of concept.
 If you are new to Bluetooth this might not be the best library to start with
