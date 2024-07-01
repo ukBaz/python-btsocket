@@ -398,6 +398,37 @@ class ADType(Enum):
     ManufacturerData = 0xff
 
 
+class LinkKeyType(Enum):
+    def __str__(self):
+        return str(self.name)
+
+    def __repr__(self):
+        return str(self.name)
+
+    Combination = 0x00
+    LocalUnit = 0x01
+    RemoteUnit = 0x02
+    DebugCombination = 0x03
+    UnauthenticatedCombinationP192 = 0x04
+    AuthenticatedCombinationP192 = 0x05
+    ChangedCombination = 0x06
+    UnauthenticatedCombinationP256 = 0x07
+    AuthenticatedCombinationP256 = 0x08
+
+
+class LinkKeyTypeData(DataField):
+
+    def decode(self, data):
+        self.value = LinkKeyType(int.from_bytes(data, byteorder='little'))
+        self.octets = data
+
+    def encode(self, value, width):
+        self.value = value
+        self.octets = int(value.value).to_bytes(width,
+                                                byteorder='little',
+                                                signed=False)
+
+
 class ErrorCodes(Enum):
     def __str__(self):
         return str(self.name)
@@ -578,8 +609,8 @@ cmds = {
                     Parameter(name='address', width=6, bt_type='Address'),
                     Parameter(name='address_type', width=1,
                               bt_type='AddressTypeField'),
-                    Parameter(name='key_type', width=1),
-                    Parameter(name='value', width=16),
+                    Parameter(name='key_type', width=1, bt_type='LinkKeyTypeData'),
+                    Parameter(name='value', width=16, bt_type='HexStr'),
                     Parameter(name='pin_length', width=1)]),
     0x0013: Packet([Parameter(name='key_count', width=2),
                     Parameter(name='address', width=6, bt_type='Address'),
