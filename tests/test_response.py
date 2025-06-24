@@ -109,6 +109,22 @@ class TestCmdReponse(unittest.TestCase):
         pkt = btmgmt_protocol.reader(recvd)
         self.assertEqual(expected, str(pkt))
 
+    def test_windows_beacon(self):
+        expected = ('Response(header=<event_code=DeviceFoundEvent, '
+                    'controller_idx=0, '
+                    'param_len=45>, '
+                    'event_frame=<address=32:EF:52:43:07:BC, address_type=[LEPublic], '
+                    'rssi=217, flags=4, eir_data_length=31, '
+                    'eir_data={ManufacturerData: [6, 0, 1, 9, 32, 34, 38, 251, 132, 211, 70, '
+                    '43, 10, 121, 24, 236, 204, 209, 37, 74, 233, 156, 74, 242, 235, 224, '
+                    '255, 78, 254]}>, cmd_response_frame=None)')
+        recvd = (b'\x12\x00\x00\x00-\x00\xbc\x07CR\xef2\x02\xd9\x04\x00\x00\x00'
+                 b'\x1f\x00\x1e\xff\x06\x00\x01\t "&\xfb\x84\xd3F+\ny\x18\xec'
+                 b'\xcc\xd1%J\xe9\x9cJ\xf2\xeb\xe0\xffN\xfe')
+        pkt = btmgmt_protocol.reader(recvd)
+        ad_type = btmgmt_protocol.ADType.ManufacturerData
+        pkt.event_frame.eir_data[ad_type] = list(pkt.event_frame.eir_data[ad_type])
+        self.assertEqual(expected, str(pkt))
 
 if __name__ == '__main__':
     unittest.main()

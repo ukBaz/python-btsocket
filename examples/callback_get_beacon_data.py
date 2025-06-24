@@ -7,7 +7,7 @@ max_scans = 4
 beacon_address = 'DC:76:F7:E1:62:E0'
 
 logger = logging.getLogger('btsocket.btmgmt_protocol')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 def print_sensor_data(data):

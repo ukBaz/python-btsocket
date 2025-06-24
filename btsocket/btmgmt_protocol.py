@@ -1048,6 +1048,7 @@ def reader(pckt):
     #
     # <- Command Packet    ->
     # <- cmd_header ->|<- cmd_frame ->
+    logger.debug('Socket Packet: %s', pckt)
     header = EventHeader()
     evt_params = header.decode(pckt)
     event_frame = events.get(header.event_code.value)
